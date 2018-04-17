@@ -2,8 +2,8 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape>
-            <corners android:radius="10dp"/>
-            <solid android:color="#BB272727"/>
+            <solid android:color="#76272727"/>
+            <corners android:radius="150dp" />
         </shape>
     </item>
     <item android:drawable="@drawable/handsome_logo"/>

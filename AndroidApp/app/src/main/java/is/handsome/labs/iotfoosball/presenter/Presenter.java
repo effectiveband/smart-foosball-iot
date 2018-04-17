@@ -122,14 +122,13 @@ public class Presenter implements InterfacePresentorFromInteractor, InterfacePre
         interfaceInteractorFromPresenter.initListeners();
     }
 
-    @Override
+   @Override
     public void onActivityResume() {
-        interfaceInteractorFromPresenter.resumeServices();
+       // interfaceInteractorFromPresenter.resumeServices();
     }
 
     @Override
-    public void onActivityPause() {
-        interfaceInteractorFromPresenter.pauseServices();
+    public void onActivityPause(){//interfaceInteractorFromPresenter.pauseServices();
     }
 
     @Override

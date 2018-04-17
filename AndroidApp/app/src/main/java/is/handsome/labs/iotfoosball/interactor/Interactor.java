@@ -22,7 +22,6 @@ import is.handsome.labs.iotfoosball.services.FirebaseDatabaseListService;
 import is.handsome.labs.iotfoosball.services.FirebaseStorageLinkService;
 import is.handsome.labs.iotfoosball.services.InterfaceFirebaseStorageLinkReciver;
 import is.handsome.labs.iotfoosball.services.SoundService;
-import is.handsome.labs.iotfoosball.services.UsbService;
 import is.handsome.labs.iotfoosball.view.MainActivity;
 
 public class Interactor implements InterfaceInteractorFromPresenter, InterfaceFirebaseStorageLinkReciver {
@@ -30,26 +29,24 @@ public class Interactor implements InterfaceInteractorFromPresenter, InterfaceFi
     private InterfacePresentorFromInteractor interfacePresentorFromInteractor;
     private FirebaseStorageLinkService firebaseStorageLinkService;
     private SoundService soundPlayer;
-    private UsbService usbService;
     private FirebaseAuthService fbAuthService;
     private PhraseSpotterForCountStart phraseSpotter;
     private TimerForClock timerClock;
     private CurrentGame currentGame;
     private ActivityProvider activityProvider;
-
     private List<PlayerWithScore> playerWithScoreList;
-    private AuthDataReaderService authDataReaderService;
     private FirebaseDatabaseListService<Player> fbDatabasePlayersService;
     private FirebaseDatabaseListService<Game> fbDatabaseGamesService;
+    private TcpIpGoalListenerServer tcpIpGoalListenerServer;
 
     public Interactor(ActivityProvider activityProvider,
-            InterfacePresentorFromInteractor interfacePresentorFromInteractor) {
+                      InterfacePresentorFromInteractor interfacePresentorFromInteractor) {
 
         this.activityProvider = activityProvider;
-                
+
         this.interfacePresentorFromInteractor = interfacePresentorFromInteractor;
 
-        authDataReaderService =
+        AuthDataReaderService authDataReaderService =
                 new AuthDataReaderService(activityProvider.getActivity().getApplicationContext(),
                         R.raw.data);
 
@@ -57,7 +54,7 @@ public class Interactor implements InterfaceInteractorFromPresenter, InterfaceFi
                 new FirebaseStorageLinkService(activityProvider
                         .getActivity()
                         .getApplicationContext(),
-                authDataReaderService.getFirebaseStorageLink(), this);
+                        authDataReaderService.getFirebaseStorageLink(), this);
 
         fbAuthService = new FirebaseAuthService(activityProvider.getActivity(),
                 authDataReaderService.getFbLogin(),
@@ -91,14 +88,7 @@ public class Interactor implements InterfaceInteractorFromPresenter, InterfaceFi
                 database.child("/games/"),
                 playerWithScoreList);
 
-        SerialHandler serialHandler = SerialHandler.getInstance(currentGame);
-
-        usbService =
-                new UsbService(activityProvider
-                        .getActivity()
-                        .getApplicationContext()
-                        .getApplicationContext(),
-                serialHandler);
+        tcpIpGoalListenerServer = TcpIpGoalListenerServer.getInstance(currentGame, 4444);
     }
 
     @Override
@@ -114,23 +104,13 @@ public class Interactor implements InterfaceInteractorFromPresenter, InterfaceFi
 
     }
 
-    //TODO Activity to just resume
-    //TODO
-    @Override
-    public void resumeServices() {
-        usbService.onResume();
-    }
-
-    @Override
-    public void pauseServices() {
-        usbService.onPause();
-        timerClock.cancel();
-        timerClock.reset();
-    }
-
     @Override
     public void startServices() {
         fbAuthService.onStart();
+        tcpIpGoalListenerServer.start(activityProvider
+                .getActivity()
+                .getApplicationContext()
+                .getApplicationContext());
         if (phraseSpotter != null) {
             phraseSpotter.onStart(activityProvider.getActivity().getApplicationContext());
         }
@@ -138,6 +118,7 @@ public class Interactor implements InterfaceInteractorFromPresenter, InterfaceFi
 
     @Override
     public void stopServices() {
+        tcpIpGoalListenerServer.stop();
         if (phraseSpotter != null) {
             phraseSpotter.onStop();
         }

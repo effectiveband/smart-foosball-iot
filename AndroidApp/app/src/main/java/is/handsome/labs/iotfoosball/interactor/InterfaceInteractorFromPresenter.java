@@ -7,10 +7,6 @@ public interface InterfaceInteractorFromPresenter {
 
     void initListeners();
 
-    void resumeServices();
-
-    void pauseServices();
-
     void startServices();
 
     void stopServices();
